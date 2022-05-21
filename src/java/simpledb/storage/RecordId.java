@@ -1,6 +1,7 @@
 package simpledb.storage;
 
 import java.io.Serializable;
+import java.util.Random;
 
 /**
  * A RecordId is a reference to a specific tuple on a specific page of a
@@ -9,19 +10,20 @@ import java.io.Serializable;
 public class RecordId implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private PageId pid;
-    private int tupleno;
+    private final PageId pid;
+    private final int tupleno;
+
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
      * number.
-     * 
-     * @param pid
-     *            the pageid of the page on which the tuple resides
-     * @param tupleno
-     *            the tuple number within the page.
+     *
+     * @param pid     the pageid of the page on which the tuple resides
+     * @param tupleno the tuple number within the page.
      */
     public RecordId(PageId pid, int tupleno) {
         // some code goes here
+        this.pid = pid;
+        this.tupleno = tupleno;
     }
 
     /**
@@ -29,7 +31,7 @@ public class RecordId implements Serializable {
      */
     public int getTupleNumber() {
         // some code goes here
-        return 0;
+        return tupleno;
     }
 
     /**
@@ -37,43 +39,45 @@ public class RecordId implements Serializable {
      */
     public PageId getPageId() {
         // some code goes here
-        return null;
+        return pid;
     }
 
     /**
      * Two RecordId objects are considered equal if they represent the same
      * tuple.
-     * 
+     *
      * @return True if this and o represent the same tuple
      */
     @Override
     public boolean equals(Object o) {
         // some code goes here
 //        throw new UnsupportedOperationException("implement this");
-        if (o==null){
+        if (o == null) {
             return false;
         }
-        if (o==this){
+        if (o == this) {
             return true;
         }
-        if(!(o instanceof RecordId)){
+        if (!(o instanceof RecordId)) {
             return false;
         }
         RecordId o1 = (RecordId) o;
-        return pid == o1.pid && tupleno == o1.tupleno;
+        return pid.getTableId() == o1.pid.getTableId() &&
+                pid.getPageNumber() == o1.pid.getPageNumber() &&
+                tupleno == o1.tupleno;
     }
 
     /**
      * You should implement the hashCode() so that two equal RecordId instances
      * (with respect to equals()) have the same hashCode().
-     * 
+     *
      * @return An int that is the same for equal RecordId objects.
      */
     @Override
     public int hashCode() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
-
+        //throw new UnsupportedOperationException("implement this");
+        return (pid.getTableId() + "-" + pid.getPageNumber() + "-" + tupleno).hashCode(); //这里随便写的
     }
 
 }
