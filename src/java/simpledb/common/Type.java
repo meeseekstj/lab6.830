@@ -64,4 +64,8 @@ public enum Type implements Serializable {
    */
     public abstract Field parse(DataInputStream dis) throws ParseException;
 
+    @Override
+    public String toString() {
+        return this.name();
+    }
 }
