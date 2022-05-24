@@ -32,7 +32,7 @@ public enum Type implements Serializable {
         @Override
         public int getLen() {
             return STRING_LEN+4;
-        }
+        }//这里的4代表一个int，用来表示该字符串的长度
 
         @Override
         public Field parse(DataInputStream dis) throws ParseException {

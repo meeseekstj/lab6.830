@@ -90,7 +90,7 @@ public class HeapPage implements Page {
      */
     private int getHeaderSize() {
         // some code goes here
-        return (int) Math.ceil(getNumTuples()/8);
+        return (int) Math.ceil(getNumTuples() / 8);
 
     }
 
@@ -297,7 +297,15 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return getNumTuples() - tuples.length;
+        int valid = 0;
+        for (byte b : header) {//byte!!!not int...waste to much time
+            while (b != 0) {
+                b &= b - 1;
+                valid++;
+            }
+        }
+//        System.out.printf("!!!!numuples: %d",getNumTuples());
+        return getNumTuples() - valid;
     }
 
     /**
@@ -328,12 +336,16 @@ public class HeapPage implements Page {
 
             @Override
             public boolean hasNext() {
-                return idx < tuples.length;
+                while (idx < tuples.length) {
+                    if (isSlotUsed(idx)) return true;
+                    else idx++;
+                }
+                return false;
             }
 
             @Override
             public Tuple next() {
-                if (idx < tuples.length) {
+                if (hasNext()) {
                     return tuples[idx++];
                 }
                 return null;
