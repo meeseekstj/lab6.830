@@ -136,11 +136,13 @@ public class HeapFile implements DbFile {
 
             private boolean isOpen;
 
+            private HeapPage getPageFromPool() throws TransactionAbortedException, DbException {
+                return (HeapPage) Database.getBufferPool().getPage(tid, new HeapPageId(getId(), nextPage++), Permissions.READ_ONLY);
+            }
+
             @Override
             public void open() throws DbException, TransactionAbortedException {
-                HeapPage page = (HeapPage) readPage(new HeapPageId(getId(), nextPage));
-                tupleItr = page.iterator();
-                nextPage++;
+                tupleItr = getPageFromPool().iterator();
                 isOpen = true;
             }
 
@@ -148,29 +150,24 @@ public class HeapFile implements DbFile {
             public boolean hasNext() throws DbException, TransactionAbortedException {
                 if (!isOpen) return false;
                 if (tupleItr.hasNext()) return true;
-                else if (nextPage < numPages()) return true;
+                else if (nextPage < numPages()) {
+                    tupleItr = getPageFromPool().iterator();
+                    return true;
+                }
                 return false;
             }
 
             @Override
             public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
                 if (!isOpen) throw new NoSuchElementException();
-                if (tupleItr.hasNext()) return tupleItr.next();
-                else if (nextPage < numPages()) {
-                    HeapPage page = (HeapPage) readPage(new HeapPageId(getId(), nextPage));
-                    tupleItr = page.iterator();
-                    nextPage++;
-                    return next();
-                }
-                return null;
+                return tupleItr.next();
             }
 
             @Override
             public void rewind() throws DbException, TransactionAbortedException {
                 if (!isOpen) return;
                 nextPage = 0;
-                HeapPage page = (HeapPage) readPage(new HeapPageId(getId(), nextPage));
-                tupleItr = page.iterator();
+                tupleItr = getPageFromPool().iterator();
             }
 
             @Override

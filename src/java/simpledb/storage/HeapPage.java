@@ -90,8 +90,8 @@ public class HeapPage implements Page {
      */
     private int getHeaderSize() {
         // some code goes here
-        return (int) Math.ceil(getNumTuples() / 8);
-
+        int size = getNumTuples() / 8;
+        return size * 8 < getNumTuples() ? size + 1 : size;
     }
 
     /**
@@ -346,6 +346,7 @@ public class HeapPage implements Page {
             @Override
             public Tuple next() {
                 if (hasNext()) {
+                    //System.out.println("get tuple at index:"+idx);
                     return tuples[idx++];
                 }
                 return null;

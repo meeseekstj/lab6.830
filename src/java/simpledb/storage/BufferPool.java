@@ -91,11 +91,12 @@ public class BufferPool {
             if (curNum < maxNum) {
                 Page page = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
                 pageBuffer.put(pid, page);
+                return page;
             } else {
                 throw new DbException("there is insufficient space in the buffer pool");
             }
         }
-        return null;
+        //return null;
     }
 
     /**
