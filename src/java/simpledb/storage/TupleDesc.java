@@ -86,7 +86,7 @@ public class TupleDesc implements Serializable {
         int len = fieldAr.length;
         elementData = new TDItem[num];
         for (int i = 0; i < num; i++) {
-            elementData[i] = new TDItem(typeAr[i], i < len ? fieldAr[i] : null);
+            elementData[i] = new TDItem(typeAr[i], i < len ? fieldAr[i] : "");
         }
     }
 
@@ -102,7 +102,7 @@ public class TupleDesc implements Serializable {
         num = typeAr.length;
         elementData = new TDItem[num];
         for (int i = 0; i < num; i++) {
-            elementData[i] = new TDItem(typeAr[i], null);
+            elementData[i] = new TDItem(typeAr[i], "");
         }
     }
 
@@ -123,7 +123,7 @@ public class TupleDesc implements Serializable {
      */
     public String getFieldName(int i) throws NoSuchElementException {
         // some code goes here
-        return i < num ? elementData[i].fieldName : null;
+        return i < num ? elementData[i].fieldName : "";
     }
 
     /**
@@ -182,14 +182,14 @@ public class TupleDesc implements Serializable {
         int n1 = td1.num, n2 = td2.num, mergedNum = n1 + n2;
         Type[] types = new Type[mergedNum];
         String[] fields = new String[mergedNum];
-        int i = 0;
-        for (; i < n1; i++) {
-            types[i] = td1.elementData[i].fieldType;
-            fields[i] = td1.elementData[i].fieldName;
+        int p = 0;
+        for (int i = 0; i < n1; i++) {
+            types[p] = td1.elementData[i].fieldType;
+            fields[p++] = td1.elementData[i].fieldName;
         }
-        for (; i < n2; i++) {
-            types[i] = td2.elementData[i].fieldType;
-            fields[i] = td2.elementData[i].fieldName;
+        for (int i = 0; i < n2; i++) {
+            types[p] = td2.elementData[i].fieldType;
+            fields[p++] = td2.elementData[i].fieldName;
         }
         return new TupleDesc(types, fields);
     }
@@ -216,11 +216,11 @@ public class TupleDesc implements Serializable {
             return true;
         }
         TupleDesc desc = (TupleDesc) o;
-        if (desc.num != this.num){
+        if (desc.num != this.num) {
             return false;
         }
         for (int i = 0; i < this.num; i++) {
-            if(this.elementData[i].fieldType != desc.elementData[i].fieldType){
+            if (this.elementData[i].fieldType != desc.elementData[i].fieldType) {
                 return false;
             }
         }
@@ -242,9 +242,9 @@ public class TupleDesc implements Serializable {
      */
     public String toString() {
         // some code goes here
-        StringBuilder sb = new StringBuilder();
+        StringJoiner sb = new StringJoiner(",");
         for (int i = 0; i < num; i++) {
-            sb.append(elementData[i].fieldType.toString()+":"+elementData[i].fieldName+"\n");
+            sb.add(elementData[i].fieldType.toString() + "(" + elementData[i].fieldName + ")");
         }
         return sb.toString();
     }

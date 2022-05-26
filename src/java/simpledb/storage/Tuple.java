@@ -92,7 +92,7 @@ public class Tuple implements Serializable {
     public String toString() {
         // some code goes here
 //        throw new UnsupportedOperationException("Implement this");
-        StringJoiner sj = new StringJoiner(",");
+        StringJoiner sj = new StringJoiner(" ");
         for (int i = 0; i < fields.length; i++) {
             sj.add(fields[i].toString());
         }
@@ -131,5 +131,19 @@ public class Tuple implements Serializable {
     public void resetTupleDesc(TupleDesc td) {
         // some code goes here
         tupleDesc = td;
+    }
+
+    public static Tuple mergeTuple(Tuple t1, Tuple t2,TupleDesc td) {
+        Tuple tuple = new Tuple(td);
+        int i = 0;
+        Iterator<Field> fields1 = t1.fields();
+        while (fields1.hasNext()) {
+            tuple.setField(i++, fields1.next());
+        }
+        Iterator<Field> fields2 = t2.fields();
+        while (fields2.hasNext()) {
+            tuple.setField(i++, fields2.next());
+        }
+        return tuple;
     }
 }
