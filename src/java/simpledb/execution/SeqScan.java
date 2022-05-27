@@ -88,6 +88,7 @@ public class SeqScan implements OpIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        if (isOpen)return;
         tbItr = Database.getCatalog().getDatabaseFile(tableId).iterator(tid);
         tbItr.open();
         isOpen = true;
@@ -137,6 +138,7 @@ public class SeqScan implements OpIterator {
 
     public void close() {
         // some code goes here
+        if (!isOpen)return;
         tbItr.close();
         tbItr = null;
         isOpen = false;

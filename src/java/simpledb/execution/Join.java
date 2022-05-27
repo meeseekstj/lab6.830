@@ -111,7 +111,7 @@ public class Join extends Operator {
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
         //a little difficult,要考虑保存状态
-        if (t2 == null) {
+        if (t2 == null) { // 当child1固定,child2遍历结束时
             while (child1.hasNext()) {
                 t1 = child1.next();
                 child2.rewind();
@@ -124,7 +124,7 @@ public class Join extends Operator {
                     }
                 }
             }
-        } else {
+        } else { // 当child1固定,child2遍历未结束时,需从保存好的状态开始
             while (child2.hasNext()) {
                 t2 = child2.next();
                 if (p.filter(t1, t2)) {
