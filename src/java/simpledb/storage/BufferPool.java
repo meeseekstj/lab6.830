@@ -101,6 +101,7 @@ public class BufferPool {
 //                    }
 //                }
                 pageBuffer.put(pid, page);
+                curNum++;
                 return page;
             } else {
                 throw new DbException("there is insufficient space in the buffer pool");
