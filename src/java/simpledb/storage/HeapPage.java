@@ -27,6 +27,9 @@ public class HeapPage implements Page {
     byte[] oldData;
     private final Byte oldDataLock = (byte) 0;
 
+    private boolean isDirty;
+    private TransactionId dirtyTid;
+
     /**
      * Create a HeapPage from a set of bytes of data read from disk.
      * The format of a HeapPage is a set of header bytes indicating
@@ -259,6 +262,12 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        int tn = t.getRecordId().getTupleNumber();
+        if (isSlotUsed(tn)) {
+            Tuple tuple = tuples[tn];
+            //if (!tuple.equals(t)) throw new DbException("wrong tuple");
+            markSlotUsed(tn, false);
+        } else throw new DbException("tuple not exist");
     }
 
     /**
@@ -272,6 +281,11 @@ public class HeapPage implements Page {
     public void insertTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        int pn = getAvailableSlot();
+        if (pn == -1) throw new DbException("page full");
+        t.setRecordId(new RecordId(pid, pn));
+        tuples[pn] = t;
+        markSlotUsed(pn, true);
     }
 
     /**
@@ -281,6 +295,8 @@ public class HeapPage implements Page {
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
         // not necessary for lab1
+        isDirty = dirty;
+        dirtyTid = tid;
     }
 
     /**
@@ -289,7 +305,7 @@ public class HeapPage implements Page {
     public TransactionId isDirty() {
         // some code goes here
         // Not necessary for lab1
-        return null;
+        return isDirty ? dirtyTid : null;
     }
 
     /**
@@ -308,6 +324,13 @@ public class HeapPage implements Page {
         return getNumTuples() - valid;
     }
 
+    private int getAvailableSlot() {
+        for (int i = 0; i < tuples.length; i++) {
+            if (!isSlotUsed(i)) return i;
+        }
+        return -1;
+    }
+
     /**
      * Returns true if associated slot on this page is filled.
      */
@@ -323,6 +346,14 @@ public class HeapPage implements Page {
     private void markSlotUsed(int i, boolean value) {
         // some code goes here
         // not necessary for lab1
+        boolean used = isSlotUsed(i);
+
+        int idx = i / 8, mod = i % 8;
+        byte x = (byte) (1 << mod);
+        if (value)
+            header[idx] |= x;
+        else
+            header[idx] &= ~x;
     }
 
     /**

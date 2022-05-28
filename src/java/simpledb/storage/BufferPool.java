@@ -9,6 +9,7 @@ import simpledb.transaction.TransactionId;
 
 import java.io.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -90,6 +91,15 @@ public class BufferPool {
         } else {
             if (curNum < maxNum) {
                 Page page = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+//                if (page == null) {
+//                    if (pid instanceof HeapPageId) {
+//                        try {
+//                            page = new HeapPage((HeapPageId) pid, new byte[getPageSize()]);
+//                        } catch (IOException e) {
+//                            return null;
+//                        }
+//                    }
+//                }
                 pageBuffer.put(pid, page);
                 return page;
             } else {
@@ -163,6 +173,12 @@ public class BufferPool {
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        List<Page> pages = Database.getCatalog().getDatabaseFile(tableId).insertTuple(tid, t);
+        for (Page p : pages) {
+            p.markDirty(true, tid);
+            //因为这些脏页可能是新生成的，所以需要放入buffer
+            pageBuffer.put(p.getId(), p);
+        }
     }
 
     /**
@@ -182,6 +198,10 @@ public class BufferPool {
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
+        List<Page> pages = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId()).deleteTuple(tid, t);
+        for (Page p : pages) {
+            p.markDirty(true, tid);
+        }
     }
 
     /**

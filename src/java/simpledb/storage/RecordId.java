@@ -10,8 +10,8 @@ import java.util.Random;
 public class RecordId implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final PageId pid;
-    private final int tupleno;
+    private  PageId pid;
+    private  int tupleno;
 
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
