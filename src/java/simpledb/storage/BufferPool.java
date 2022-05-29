@@ -9,6 +9,8 @@ import simpledb.transaction.TransactionId;
 
 import java.io.*;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +52,7 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
-        pageBuffer = new ConcurrentHashMap<>();
+        pageBuffer = new LinkedHashMap<>();
         maxNum = numPages;
     }
 
@@ -86,11 +88,12 @@ public class BufferPool {
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
             throws TransactionAbortedException, DbException {
         // some code goes here
+        Page target = null;
         if (pageBuffer.keySet().contains(pid)) {
-            return pageBuffer.get(pid);
+            target = pageBuffer.get(pid);
         } else {
-            if (curNum < maxNum) {
-                Page page = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+            if (curNum == maxNum) {
+                evictPage();
 //                if (page == null) {
 //                    if (pid instanceof HeapPageId) {
 //                        try {
@@ -100,14 +103,13 @@ public class BufferPool {
 //                        }
 //                    }
 //                }
-                pageBuffer.put(pid, page);
-                curNum++;
-                return page;
-            } else {
-                throw new DbException("there is insufficient space in the buffer pool");
+                curNum--;
             }
+            target = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+            curNum++;
         }
-        //return null;
+        pageBuffer.put(pid, target);
+        return target;
     }
 
     /**
@@ -213,7 +215,15 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
-
+        for (Map.Entry<PageId, Page> entry : pageBuffer.entrySet()) {
+            if (entry.getValue().isDirty() != null) {
+                try {
+                    flushPage(entry.getKey());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -228,6 +238,15 @@ public class BufferPool {
     public synchronized void discardPage(PageId pid) {
         // some code goes here
         // not necessary for lab1
+        Page page = pageBuffer.get(pid);
+        if (page.isDirty() != null) {
+            try {
+                flushPage(pid);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        pageBuffer.remove(pid);
     }
 
     /**
@@ -238,6 +257,8 @@ public class BufferPool {
     private synchronized void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for lab1
+        Page page = pageBuffer.get(pid);
+        Database.getCatalog().getDatabaseFile(pid.getTableId()).writePage(page);
     }
 
     /**
@@ -255,6 +276,11 @@ public class BufferPool {
     private synchronized void evictPage() throws DbException {
         // some code goes here
         // not necessary for lab1
+        Iterator<Map.Entry<PageId, Page>> itr = pageBuffer.entrySet().iterator();
+        if (itr.hasNext()) {
+            itr.next();
+            itr.remove();
+        }
     }
 
 }
